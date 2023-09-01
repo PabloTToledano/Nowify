@@ -43,8 +43,7 @@ export default {
         auth: 'https://accounts.spotify.com/authorize',
         token: 'https://accounts.spotify.com/api/token',
         base: 'https://api.spotify.com/v1',
-        nowPlaying: 'me/player/currently-playing',
-        artists: 'artists'
+        nowPlaying: 'me/player/currently-playing'
       },
       player: {
         playing: false,
@@ -110,5 +109,3 @@ export default {
   }
 }
 </script>
-
-
