@@ -5,20 +5,53 @@
       class="now-playing"
       :class="getNowPlayingClass()"
     >
-      <div class="now-playing__cover">
-        <img
-          :src="player.trackAlbum.image"
-          :alt="player.trackTitle"
-          class="now-playing__image"
-        />
-      </div>
-      <div class="now-playing__details">
-        <h1 class="now-playing__track" v-text="player.trackTitle"></h1>
-        <h2 class="now-playing__artists" v-text="getTrackArtists"></h2>
-      </div>
+      <b-container fluid>
+        <b-row>
+          <b-col
+            ><div class="now-playing__cover">
+              <img
+                :src="player.trackAlbum.image"
+                :alt="player.trackTitle"
+                class="now-playing__image"
+              /></div
+          ></b-col>
+          <b-col
+            ><div
+              v-if="this.playerResponse.context"
+              class="now-playing__context has-context"
+            >
+              <b-row class="">
+                <img class="now-playing__code" :src="getContextObject().url" />
+              </b-row>
+              <b-row>
+                <h3
+                  class="mb-5 now-playing__context-name"
+                  v-text="getContextObject().contextName.toLowerCase()"
+                ></h3>
+              </b-row>
+            </div>
+            <div v-else class="now-playing__context null-context">
+              <b-row class="pb-5">
+                <img class="mb-5" :src="getCodeUrl(player.trackUri)" />
+              </b-row>
+            </div>
+            <b-row class="">
+              <h1
+                class="now-playing__details now-playing__track mt-4"
+                v-text="player.trackTitle"
+              ></h1>
+            </b-row>
+            <b-row class="">
+              <h2
+                class="now-playing__details now-playing__artists"
+                v-text="getTrackArtists"
+              ></h2> </b-row
+          ></b-col>
+        </b-row>
+      </b-container>
     </div>
     <div v-else class="now-playing" :class="getNowPlayingClass()">
-      <h1 class="now-playing__idle-heading"></h1>
+      <h1 class="now-playing__idle-heading">No music is playing 😔</h1>
     </div>
   </div>
 </template>
@@ -44,6 +77,8 @@ export default {
       playerData: this.getEmptyPlayer(),
       colourPalette: '',
       swatches: [],
+      spotifyCode: {},
+      currentPlaylist: {}
     }
   },
 
@@ -126,6 +161,91 @@ export default {
     getNowPlayingClass() {
       const playerClass = this.player.playing ? 'active' : 'idle'
       return `now-playing--${playerClass}`
+    },
+
+    /**
+     * Construct the context of Now Playing
+     * @return {Object}
+     */
+    getContextObject() {
+      var context = this.playerResponse.context.type
+      let contextName = ''
+      let url = ''
+
+      if (context === 'album') {
+        this.spotifyCode.url = this.getCodeUrl(this.player.trackAlbum.uri)
+        this.spotifyCode.contextName = this.player.trackAlbum.title
+      } else if (context === 'artist') {
+        this.spotifyCode.url = this.getCodeUrl(this.player.artistUri)
+        this.spotifyCode.contextName = this.player.trackArtists[0]
+      } else if (context === 'playlist') {
+        this.spotifyCode.url = this.getCodeUrl(this.playerResponse.context.uri)
+        this.getPlaylistName(this.playerResponse.context.href).then(() => {
+          this.spotifyCode.contextName = this.currentPlaylist.name
+        })
+      }
+
+      url = this.spotifyCode.url
+      contextName = this.spotifyCode.contextName
+      return { contextName, url }
+    },
+
+    /**
+     * Construct the Spotify Code
+     * @return {String}
+     */
+    getCodeUrl(uri) {
+      const baseURL = 'https://scannables.scdn.co/uri/plain/png/'
+      if (!uri) return
+      let background = this.colourPalette.background
+      if (!background) return
+      else background = background.slice(1)
+
+      let textHex = this.colourPalette.text
+      if (!textHex) return
+
+      let colorStr = textHex === '#000' ? 'black' : 'white'
+
+      return `${baseURL}${background}/${colorStr}/450/${uri}`
+    },
+
+    /**
+     * get Playlist name
+     * @return {String}
+     */
+    async getPlaylistName(url) {
+      let m = {}
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`
+          }
+        })
+
+        /**
+         * Fetch error.
+         */
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+
+        /**
+         * Spotify returns a 204 when no current device session is found.
+         * The connection was successful but there's no content to return.
+         */
+        if (response.status === 204) {
+          this.currentPlaylist.name = ''
+          return
+        }
+
+        m = await response.json()
+        this.currentPlaylist.name = m.name
+        return
+      } catch (error) {
+        this.handleExpiredToken()
+
+        console.log(error)
+      }
     },
 
     /**
@@ -228,11 +348,14 @@ export default {
         trackArtists: this.playerResponse.item.artists.map(
           artist => artist.name
         ),
+        artistUri: this.playerResponse.item.artists[0].uri,
+        trackUri: this.playerResponse.item.uri,
         trackTitle: this.playerResponse.item.name,
         trackId: this.playerResponse.item.id,
         trackAlbum: {
           title: this.playerResponse.item.album.name,
-          image: this.playerResponse.item.album.images[0].url
+          image: this.playerResponse.item.album.images[0].url,
+          uri: this.playerResponse.item.uri
         }
       }
     },
@@ -270,8 +393,7 @@ export default {
     handleExpiredToken() {
       clearInterval(this.pollPlaying)
       this.$emit('requestRefreshToken')
-    },
-  
+    }
   },
   watch: {
     /**
