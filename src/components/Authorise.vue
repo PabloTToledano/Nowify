@@ -15,7 +15,7 @@
     </button>
 
     <p class="authorise__credit">
-      <a href="https://github.com/yashgharat/Nowify-3.0">View on GitHub</a>
+      <a href="https://github.com/jonashcroft/Nowify">View on GitHub</a>
     </p>
   </div>
 </template>
@@ -91,7 +91,7 @@ export default {
 
       if (grantType === 'authorization_code') {
         ;(fetchData.code = this.auth.authCode),
-          (fetchData.redirect_uri = 'https://www.yashgharat.com/rpi_spotify/')
+          (fetchData.redirect_uri = window.location.origin)
       }
 
       if (grantType === 'refresh_token') {
@@ -181,7 +181,7 @@ export default {
       searchParams.toString()
       searchParams.append('client_id', this.auth.clientId)
       searchParams.append('response_type', 'code')
-      searchParams.append('redirect_uri', 'https://www.yashgharat.com/rpi_spotify/')
+      searchParams.append('redirect_uri', window.location.origin)
       searchParams.append(
         'state',
         [

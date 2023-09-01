@@ -33,8 +33,8 @@ export default {
       test: 'hello, world',
       auth: {
         status: false,
-        clientId: '1d7ad89831b345bd9e4c6691e0270d73',
-        clientSecret: '30b5cd8d0ea04afe9f76de76179142d5',
+        clientId: process.env.VUE_APP_SP_CLIENT_ID,
+        clientSecret: process.env.VUE_APP_SP_CLIENT_SECRET,
         authCode: '',
         accessToken: '',
         refreshToken: ''
@@ -43,7 +43,8 @@ export default {
         auth: 'https://accounts.spotify.com/authorize',
         token: 'https://accounts.spotify.com/api/token',
         base: 'https://api.spotify.com/v1',
-        nowPlaying: 'me/player/currently-playing'
+        nowPlaying: 'me/player/currently-playing',
+        artists: 'artists'
       },
       player: {
         playing: false,
@@ -110,8 +111,4 @@ export default {
 }
 </script>
 
-<style lang="scss">
-@import '~@/assets/scss/vendors/bootstrap-vue/index';
-@import '~@/assets/scss/vendors/bootstrap-vue/index';
-@import '~@/assets/scss/vendors/bootstrap-vue/index';
-</style>
+

@@ -5,43 +5,51 @@
  *
  */
 .now-playing {
-  background-color: var(--colour-background-now-playing);
+  background-color: #000;
   color: var(--color-text-primary);
   display: flex;
   flex-flow: column nowrap;
   height: 100%;
-  padding: 5px;
+  padding: var(--spacing-l);
   width: 100%;
 
   &__cover,
   &__details {
     padding: var(--spacing-m);
-    text-align: center;
+    text-align: bottom;
     width: 100%;
+    
+    
   }
 
   &__cover {
-    max-width: 400px;
-  }
-
-  &__context-name {
-    padding: var(--spacing-m);
+  position: fixed;
+  left: 400px;
+ 
   }
 
   &__image {
-    box-shadow: 2px 2px 20px -2px rgba(0, 0, 0, 0.8);
-    height: auto;
-    max-width: 30vw;
-    width: 100%;
+    height: 1080px;
+    width: 1080px;
+    animation: fadeinout 21s linear infinite;
   }
 
+  @keyframes fadeinout {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
   &__details {
     text-align: center;
-    // padding: 4px;
   }
 
   &__track {
     font-weight: var(--font-weight-heading);
+    opacity: 0.8;
   }
 
   &__artists {
@@ -63,14 +71,14 @@
     flex-flow: row nowrap;
     padding: 10%;
 
-    // &__cover,
-    // &__details {
-    //   width: 50%;
-    //   max-width: 495px;
-    // }
+    &__cover,
+    &__details {
+      width: 50%;
+      max-width: 495px;
+    }
 
     &__details {
-      text-align: left;
+      text-align: center;
     }
   }
 }
